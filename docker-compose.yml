@@ -1,0 +1,27 @@
+services:
+  cowface-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cowface-api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Monte a pasta local de modelos — coloque unet_seg.pt e best_yolo11 aqui
+      - ./models:/app/models:ro
+    environment:
+      SEG_MODEL_PATH: /app/models/unet_seg.pt
+      DET_MODEL_PATH: /app/models/best_yolo11
+      DEVICE: auto
+      DEFAULT_THRESHOLD: "0.5"
+      DEFAULT_CONF: "0.25"
+      MAX_IMAGE_SIZE_MB: "10"
+      DEBUG: "false"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 90s
+      retries: 3
